@@ -8,6 +8,8 @@ Created on Mon Mar 25 17:39:12 2019
 
 import torch
 import time
+from power_spherical import PowerSpherical
+from random import choices
 
 class BadShapeError(Exception):
     pass 
@@ -196,7 +198,7 @@ def gromov_1d(xs,xt,tolog=False):
     else:
         return toreturn
             
-def sink_(xs,xt,device,nproj=200,P=None): #Delta operator (here just padding)
+def sink_(xs,xt,device,nproj=200,P=None,kappa=50): #Delta operator (here just padding)
     """ Sinks the points of the measure in the lowest dimension onto the highest dimension and applies the projections.
     Only implemented with the 0 padding Delta=Delta_pad operator (see [1])
     Parameters
@@ -234,9 +236,21 @@ def sink_(xs,xt,device,nproj=200,P=None): #Delta operator (here just padding)
         xt2=torch.cat((xt,torch.zeros((xt.shape[0],dim_d-dim_p)).to(device)),dim=1)
         xs2=xs
      
-    if P is None:
-        P=torch.randn(random_projection_dim,nproj)
-    p=P/torch.sqrt(torch.sum(P**2,0,True))
+    if P is None:       #here instead of random will be Relation aware
+        z_xx = (xs2.detach()[np.random.choice(xs2.shape[0], nproj, replace=True)] - xs2.detach()[np.random.choice(xs2.shape[0], nproj, replace=True)])
+        z_xx_bar = z_xx / torch.sqrt(torch.sum(z_xx ** 2, dim=1, keepdim=True))
+        z_yy = (xt2.detach()[np.random.choice(xt2.shape[0], nproj, replace=True)] - xt2.detach()[np.random.choice(xt2.shape[0], nproj, replace=True)])
+        z_yy_bar = z_yy / torch.sqrt(torch.sum(z_yy ** 2, dim=1, keepdim=True))
+        z_xx_yy=(z_xx_bar+z_yy_bar)/torch.sqrt(torch.sum((z_xx_bar+z_yy_bar) ** 2, dim=1, keepdim=True))
+        z_xx_yy_dash=(z_xx_bar-z_yy_bar)/torch.sqrt(torch.sum((z_xx_bar-z_yy_bar) ** 2, dim=1, keepdim=True))
+        theta=0.5*(z_xx_yy+z_xx_yy_dash)
+        ps = PowerSpherical(
+            loc=theta,
+            scale=torch.full((theta.shape[0],), kappa, device=device),
+        )
+        theta = ps.rsample()
+        #P=torch.randn(random_projection_dim,nproj)
+    #p=P/torch.sqrt(torch.sum(P**2,0,True))
     
     try:
     
