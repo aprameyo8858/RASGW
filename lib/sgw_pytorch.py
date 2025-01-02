@@ -8,8 +8,10 @@ Created on Mon Mar 25 17:39:12 2019
 
 import torch
 import time
+import numpy as np
 from power_spherical import PowerSpherical
 from random import choices
+
 
 class BadShapeError(Exception):
     pass 
@@ -249,7 +251,7 @@ def sink_(xs,xt,device,nproj=200,P=None,kappa=50): #Delta operator (here just pa
             scale=torch.full((theta.shape[0],), kappa, device=device),
         )
         theta = ps.rsample()
-        P=theta
+        P=theta.T    #trying with T to match dimensions
         #P=torch.randn(random_projection_dim,nproj)
     p=P/torch.sqrt(torch.sum(P**2,0,True))
     
