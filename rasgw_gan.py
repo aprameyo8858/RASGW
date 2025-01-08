@@ -217,7 +217,7 @@ if not os.path.exists("plots/sgw"):
 
 # Define the optimizer and model
 #optimizer = optim.SGD(target_model.parameters(), lr=5e-3, momentum=0.9)    #
-optimizer = optim.Adam(target_model.parameters(), lr=2e-4, betas=(0.5, 0.99))
+optimizer = optim.Adam(target_model.parameters(), lr=2e-3, betas=(0.5, 0.99))
 
 # Loss lists for both methods
 losses_rasgw = []  # Losses for RASGW
