@@ -176,7 +176,8 @@ plot_3d_spiral(X3D, y3D)
 class Target_model(nn.Module):
     def __init__(self):
         super(Target_model, self).__init__()
-        self.fc1 = nn.Linear(2, 256)
+        #self.fc1 = nn.Linear(2, 256)
+        self.fc1 = nn.Linear(3, 256)
         self.fc2 = nn.Linear(256, 128)
         self.fc3 = nn.Linear(128, 1)
         self.fc4 = nn.Linear(3, K)
