@@ -157,8 +157,8 @@ N = 1500
 N_sup = 500  # number of supervised points
 K = 2  # number of classes
 #N = 150  # Number of samples
-X2D, y2D = create2D_ds(n_samples=N)
-X3D, y3D = create3D_ds(N)
+X2D, y2D = create2D_ds_spiral(n_samples=N)
+X3D, y3D = create3D_ds_spiral(N)
 
 X2D_torch, y2D_torch = ds_to_torch(X2D, y2D,device)
 X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
