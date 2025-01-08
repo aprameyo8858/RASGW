@@ -191,10 +191,10 @@ class Target_model(nn.Module):
         x = F.relu(x)
         x = self.fc3(x)
         x = torch.cat((x_init,x),dim=1)
-        #x = F.relu(x)        # was commented out originally
+        x = F.relu(x)        # was commented out originally
         return x.to('cuda')
     def forward_remaining(self,x):
-        x = F.relu(self.fc1(x))            #was commented out originally
+        #x = F.relu(self.fc1(x))            #was commented out originally
         x = self.fc4(x)
         return F.log_softmax(x, dim=1)
       
@@ -237,7 +237,7 @@ for epoch in range(500):        #it was 3000
     Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
     
     # Pass the random noise Z through the target model (generator)
-    Xt = target_model.forward_partial(Z)  # Xt is the generated data from the random noise
+    Xt = target_model.forward(Z)  # Xt is the generated data from the random noise
     
     #Xt = target_model.forward_partial(X2D_torch)
     Xs = X3D_torch
@@ -259,7 +259,7 @@ for epoch in range(500):        #it was 3000
         with torch.no_grad():
             # Generate new data using random noise Z
             Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
-            Xs_new = target_model.forward_partial(Z).clone().detach().cpu().numpy()  # Generate data from noise
+            Xs_new = target_model.forward(Z).clone().detach().cpu().numpy()  # Generate data from noise
         
             # Visualize generated data vs actual target data
             fig = pl.figure(figsize=(8, 8))
