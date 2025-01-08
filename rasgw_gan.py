@@ -250,7 +250,7 @@ for epoch in range(500):        #it was 3000
     
     losses_sgw.append(loss_)
     #losses_sgw.append(loss.item())
-    loss.backward()
+    loss_.backward()
     optimizer.step()
     optimizer.zero_grad()
 
