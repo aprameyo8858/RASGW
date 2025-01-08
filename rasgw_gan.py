@@ -249,6 +249,7 @@ for epoch in range(500):        #it was 3000
     print("SGW, Epoch,loss:",epoch,loss_)
     
     losses_sgw.append(loss_)
+    loss_=torch.tensor(loss_)
     #losses_sgw.append(loss.item())
     loss_.backward()
     optimizer.step()
