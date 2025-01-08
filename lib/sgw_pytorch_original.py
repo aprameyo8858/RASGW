@@ -12,7 +12,7 @@ import time
 class BadShapeError(Exception):
     pass 
 
-def sgw_gpu(xs,xt,device,nproj=200,tolog=False,P=None):
+def sgw_gpu_original(xs,xt,device,nproj=200,tolog=False,P=None):
     """ Returns SGW between xs and xt eq (4) in [1]. Only implemented with the 0 padding operator Delta
     Parameters
     ----------
