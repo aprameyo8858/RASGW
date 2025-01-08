@@ -122,6 +122,35 @@ losses_sgw = []    # Losses for SGW
 
 # Ensure the model is on the correct device (GPU)
 target_model = Target_model().to('cuda')  
+
+
+# Training for SGW
+for epoch in range(3000):
+    Xt = target_model.forward_partial(X2D_torch)
+    Xs = X3D_torch
+    loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
+    Delta = log['Delta']
+    loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
+    print("SGW, Epoch,loss:",epoch,loss.item())
+    
+    losses_sgw.append(loss.item())
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+
+    if epoch % 100 == 0:
+        with torch.no_grad():
+            Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()
+            fig = pl.figure(figsize=(8, 8))
+            ax = fig.add_subplot(111, projection='3d')
+            colors = {0: 'r', 1: 'b', 2: 'k', 3: 'g'}
+            ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2],
+                       c=[colors[y3D[i]] for i in range(len(y3D))])
+            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')
+            plot_filename = f"plots/sgw/epoch_{epoch}_3dscatter_sgw.png"
+            pl.savefig(plot_filename)
+            pl.close()  # Close to avoid memory issues
+            
 # Training for RASGW
 for epoch in range(3000):
     Xt = target_model.forward_partial(X2D_torch.to('cuda'))
@@ -129,7 +158,7 @@ for epoch in range(3000):
     loss_, log = risgw_gpu(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
     loss = sgw_gpu(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
-    print("RASGW, Epoch,loss:",epoch,loss)
+    print("RASGW, Epoch,loss:",epoch,loss.item())
     
     losses_rasgw.append(loss.item())
     loss.backward()
@@ -149,32 +178,6 @@ for epoch in range(3000):
             pl.savefig(plot_filename)
             pl.close()  # Close to avoid memory issues
 
-# Training for SGW
-for epoch in range(3000):
-    Xt = target_model.forward_partial(X2D_torch)
-    Xs = X3D_torch
-    loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
-    Delta = log['Delta']
-    loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
-    print("SGW, Epoch,loss:",epoch,loss)
-    
-    losses_sgw.append(loss.item())
-    loss.backward()
-    optimizer.step()
-    optimizer.zero_grad()
-
-    if epoch % 100 == 0:
-        with torch.no_grad():
-            Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()
-            fig = pl.figure(figsize=(8, 8))
-            ax = fig.add_subplot(111, projection='3d')
-            colors = {0: 'r', 1: 'b', 2: 'k', 3: 'g'}
-            ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2],
-                       c=[colors[y3D[i]] for i in range(len(y3D))])
-            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')
-            plot_filename = f"plots/sgw/epoch_{epoch}_3dscatter_sgw.png"
-            pl.savefig(plot_filename)
-            pl.close()  # Close to avoid memory issues
 
 # Now, after both trainings, plot the individual and combined loss curves
 
