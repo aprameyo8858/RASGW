@@ -40,7 +40,7 @@ def create3D_ds(n_samples):
     return X, y
 
 def ds_to_torch(X, y,device):
-    return torch.FloatTensor(X).to(device), torch.LongTensor(y).to(device)
+    return torch.FloatTensor(X).to('cuda'), torch.LongTensor(y).to('cuda')
 
 N = 150
 N_sup = 50  # number of supervised points
@@ -51,8 +51,8 @@ X3D, y3D = create3D_ds(N)
 X2D_torch, y2D_torch = ds_to_torch(X2D, y2D,device)
 X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
 
-X2D_torch=X2D_torch.to(device)
-X3D_torch=X3D_torch.to(device)
+X2D_torch=X2D_torch.to('cuda')
+X3D_torch=X3D_torch.to('cuda')
 
 # 3D plotting
 fig = pl.figure()
@@ -122,7 +122,7 @@ losses_sgw = []    # Losses for SGW
 
 # Training for RASGW
 for epoch in range(3000):
-    Xt = target_model.forward_partial(X2D_torch).to(device)
+    Xt = target_model.forward_partial(X2D_torch).to('cuda')
     Xs = X3D_torch
     loss_, log = risgw_gpu(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
