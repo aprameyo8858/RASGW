@@ -97,52 +97,6 @@ def init_normal(m):
   if type(m) == nn.Linear:
     nn.init.normal_(m.weight, mean=0, std=0.2)
 
-from risgw import risgw_gpu
-from risgw_original import risgw_gpu_original
-from sgw_pytorch import sgw_gpu
-from sgw_pytorch_original import sgw_gpu_original
-
-target_model=Target_model()
-target_model.apply(init_normal)
-
-#target_model.cuda()
-optimizer=optim.SGD(target_model.parameters(), lr=5e-3,momentum=0.9) 
-
-losses=[]
-
-for epoch in range(3000):
-    Xt=target_model.forward_partial(X2D_torch)
-    Xs=X3D_torch
-    loss_,log=risgw_gpu(Xs.to(device),Xt.to(device),device,nproj=50,max_iter=100,tolog=True,retain_graph=True)
-    Delta=log['Delta']
-    loss=sgw_gpu(Xs.matmul(Detla.detach()).to(device),Xt.to(device),device,nproj=50)
-
-    losses.append(loss.item())
-    loss.backward() 
-    optimizer.step()
-    optimizer.zero_grad()
-    
-    if epoch%100==0:
-      with torch.no_grad():
-        Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()
-        fig = pl.figure(figsize=(8,8))
-        ax = Axes3D(fig)
-        colors={0:'r',1:'b',2:'k',3:'g'}
-        ax.scatter(np.array(X3D)[:,0],np.array(X3D)[:,1],np.array(X3D)[:,2],c=[colors[y3D[i]] for i in range(len(y3D))])
-        ax.scatter(Xs_new[:,0],Xs_new[:,1],Xs_new[:,2],c='k')
-        #pl.show()
-        plot_filename = f"plots/rasgw/epoch_{epoch}_3dscatter.png"
-        pl.savefig(plot_filename)
-        pl.close()
-
-pl.figure()
-pl.plot(losses,lw=2)
-pl.title('loss along iterations for RASGW')
-# Save the loss plot
-pl.savefig("plots/rasgw/final_loss_plot_rasgw.png")
-pl.close()  # Close the figure to avoid memory issues
-
-
 
 target_model=Target_model()
 target_model.apply(init_normal)
@@ -168,7 +122,8 @@ for epoch in range(3000):
     loss_, log = risgw_gpu(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
     loss = sgw_gpu(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
-
+    print("RASGW, Epoch,loss:",epoch,loss)
+    
     losses_rasgw.append(loss.item())
     loss.backward()
     optimizer.step()
@@ -194,7 +149,8 @@ for epoch in range(3000):
     loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
     loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
-
+    print("SGW, Epoch,loss:",epoch,loss)
+    
     losses_sgw.append(loss.item())
     loss.backward()
     optimizer.step()
