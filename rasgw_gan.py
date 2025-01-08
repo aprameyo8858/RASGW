@@ -42,17 +42,17 @@ def create3D_ds(n_samples):
 def ds_to_torch(X, y,device):
     return torch.FloatTensor(X).to('cuda'), torch.LongTensor(y).to('cuda')
 
-N = 150
-N_sup = 50  # number of supervised points
-K = 2  # number of classes
-X2D, y2D = create2D_ds(n_samples=N)
-X3D, y3D = create3D_ds(N)
+#N = 150
+#N_sup = 50  # number of supervised points
+#K = 2  # number of classes
+#X2D, y2D = create2D_ds(n_samples=N)
+#X3D, y3D = create3D_ds(N)
 
-X2D_torch, y2D_torch = ds_to_torch(X2D, y2D,device)
-X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
+#X2D_torch, y2D_torch = ds_to_torch(X2D, y2D,device)
+#X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
 
-X2D_torch=X2D_torch.to('cuda')
-X3D_torch=X3D_torch.to('cuda')
+#X2D_torch=X2D_torch.to('cuda')
+#X3D_torch=X3D_torch.to('cuda')
 
 # 3D plotting
 fig = pl.figure()
@@ -71,6 +71,105 @@ pl.savefig(plot_filename)
 pl.close()
 
 print(f"Plot saved as {plot_filename}")
+
+# Generate a 2D spiral dataset
+def create2D_ds_spiral(n_samples):
+    """Create a 2D spiral dataset."""
+    theta = np.linspace(0, 4 * np.pi, n_samples)  # Spiral angle
+    r = np.linspace(0, 1, n_samples)  # Radius
+    x = r * np.sin(theta)  # x-coordinate
+    y = r * np.cos(theta)  # y-coordinate
+    
+    # Labels: Use theta to split into two classes
+    y_labels = (theta > 2 * np.pi).astype(int)  # Class 1 for θ > π and Class 0 for θ < π
+    
+    X = np.column_stack((x, y))
+    X = (X - np.min(X)) / (np.max(X) - np.min(X))  # Normalize the dataset
+    
+    return X, y_labels
+
+# Generate a 3D spiral dataset
+def create3D_ds_spiral(n_samples):
+    """Create a 3D spiral dataset."""
+    theta = np.linspace(0, 4 * np.pi, n_samples)  # Spiral angle
+    r = np.linspace(0, 1, n_samples)  # Radius
+    z = np.linspace(0, 1, n_samples)  # Z coordinate
+    
+    x = r * np.sin(theta)  # x-coordinate
+    y = r * np.cos(theta)  # y-coordinate
+    
+    # Adding noise to simulate real-world data
+    noise = np.random.normal(scale=0.1, size=(n_samples, 3))  # Noise for 3D
+    
+    X = np.column_stack((x, y, z)) + noise  # 3D spiral with noise
+    
+    # Labels: Use theta to split into two classes
+    y_labels = (theta > 2 * np.pi).astype(int)  # Class 1 for θ > π and Class 0 for θ < π
+    
+    # Normalize the dataset
+    X = (X - np.min(X)) / (np.max(X) - np.min(X))
+    
+    return X, y_labels
+
+# Plotting the 2D spiral dataset
+def plot_2d_spiral(X, y):
+    """Visualize the 2D spiral dataset."""
+    plt.figure(figsize=(6, 6))
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.RdYlBu, s=20)
+    plt.title("2D Spiral Dataset")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.colorbar(label='Class')
+
+    # Save the plot to a file
+    plot_filename = "plots/2d_spiral.png"
+    plt.savefig(plot_filename)
+    
+    # Close the figure to free up memory
+    plt.close()
+
+    print(f"Plot saved as {plot_filename}")
+
+# Plotting the 3D spiral dataset
+def plot_3d_spiral(X, y):
+    """Visualize the 3D spiral dataset."""
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    scatter = ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap=plt.cm.RdYlBu, s=20)
+    ax.set_title("3D Spiral Dataset")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    fig.colorbar(scatter, label='Class')
+
+    # Save the plot to a file
+    plot_filename = "plots/3d_spiral.png"
+    plt.savefig(plot_filename)
+    
+    # Close the figure to free up memory
+    plt.close()
+
+    print(f"Plot saved as {plot_filename}")
+
+# Example usage
+N = 150
+N_sup = 50  # number of supervised points
+K = 2  # number of classes
+#N = 150  # Number of samples
+X2D, y2D = create2D_ds(n_samples=N)
+X3D, y3D = create3D_ds(N)
+
+X2D_torch, y2D_torch = ds_to_torch(X2D, y2D,device)
+X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
+
+X2D_torch=X2D_torch.to('cuda')
+X3D_torch=X3D_torch.to('cuda')
+# Plot and save the 2D Spiral Dataset
+plot_2d_spiral(X2D, y2D)
+
+# Plot and save the 3D Spiral Dataset
+plot_3d_spiral(X3D, y3D)
+
 
 class Target_model(nn.Module):
     def __init__(self):
