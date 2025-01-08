@@ -134,7 +134,7 @@ for epoch in range(500):        #it was 3000
     Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
     
     # Pass the random noise Z through the target model (generator)
-    Xt = target_model.forward(Z)  # Xt is the generated data from the random noise
+    Xt = target_model.forward_partial(Z)  # Xt is the generated data from the random noise
     
     #Xt = target_model.forward_partial(X2D_torch)
     Xs = X3D_torch
