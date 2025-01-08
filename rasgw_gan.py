@@ -123,10 +123,20 @@ losses_sgw = []    # Losses for SGW
 # Ensure the model is on the correct device (GPU)
 target_model = Target_model().to('cuda')  
 
+def generate_random_noise(batch_size, noise_dim=2):
+    """ Generate random noise Z of shape (batch_size, noise_dim) for the source distribution """
+    Z = torch.randn(batch_size, noise_dim).to(device)  # Gaussian noise (source)
+    return Z
 
 # Training for SGW
 for epoch in range(3000):
-    Xt = target_model.forward_partial(X2D_torch)
+    # Generate random noise Z (sampled from a Gaussian distribution)
+    Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
+    
+    # Pass the random noise Z through the target model (generator)
+    Xt = target_model.forward(Z)  # Xt is the generated data from the random noise
+    
+    #Xt = target_model.forward_partial(X2D_torch)
     Xs = X3D_torch
     loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
@@ -140,16 +150,20 @@ for epoch in range(3000):
 
     if epoch % 100 == 0:
         with torch.no_grad():
-            Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()
-            fig = pl.figure(figsize=(8, 8))
-            ax = fig.add_subplot(111, projection='3d')
-            colors = {0: 'r', 1: 'b', 2: 'k', 3: 'g'}
-            ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2],
-                       c=[colors[y3D[i]] for i in range(len(y3D))])
-            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')
-            plot_filename = f"plots/sgw/epoch_{epoch}_3dscatter_sgw.png"
-            pl.savefig(plot_filename)
-            pl.close()  # Close to avoid memory issues
+        # Generate new data using random noise Z
+        Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
+        Xs_new = target_model.forward(Z).clone().detach().cpu().numpy()  # Generate data from noise
+        
+        # Visualize generated data vs actual target data
+        fig = pl.figure(figsize=(8, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], 
+                   c=[colors[y3D[i]] for i in range(len(y3D))])  # Actual target data
+        ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')  # Generated data
+        
+        plot_filename = f"plots/rasgw/epoch_{epoch}_3dscatter.png"
+        pl.savefig(plot_filename)
+        pl.close()
             
 # Training for RASGW
 for epoch in range(3000):
