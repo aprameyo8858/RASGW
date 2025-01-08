@@ -90,7 +90,7 @@ class Target_model(nn.Module):
         x = self.fc3(x)
         x = torch.cat((x_init,x),dim=1)
         #x = F.relu(x)
-        return x
+        return x.to('cuda')
     def forward_remaining(self,x):
         #x = F.relu(self.fc1(x))
         x = self.fc4(x)
@@ -122,7 +122,7 @@ losses_sgw = []    # Losses for SGW
 
 # Training for RASGW
 for epoch in range(3000):
-    Xt = target_model.forward_partial(X2D_torch.to('cuda')).to('cuda')
+    Xt = target_model.forward_partial(X2D_torch).to('cuda')
     Xs = X3D_torch
     loss_, log = risgw_gpu(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
