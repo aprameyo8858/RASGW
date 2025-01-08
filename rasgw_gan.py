@@ -274,7 +274,7 @@ for epoch in range(500):        #it was 3000
             pl.close()
             
 # Training for RASGW
-for epoch in range(500):
+for epoch in range(-1):
     Xt = target_model.forward_partial(X2D_torch.to('cuda'))
     Xs = X3D_torch
     loss_, log = risgw_gpu(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
