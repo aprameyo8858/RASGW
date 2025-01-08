@@ -153,8 +153,8 @@ def plot_3d_spiral(X, y):
     print(f"Plot saved as {plot_filename}")
 
 # Example usage
-N = 150
-N_sup = 50  # number of supervised points
+N = 1500
+N_sup = 500  # number of supervised points
 K = 2  # number of classes
 #N = 150  # Number of samples
 X2D, y2D = create2D_ds(n_samples=N)
