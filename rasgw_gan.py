@@ -114,28 +114,28 @@ def create3D_ds_spiral(n_samples):
 # Plotting the 2D spiral dataset
 def plot_2d_spiral(X, y):
     """Visualize the 2D spiral dataset."""
-    plt.figure(figsize=(6, 6))
-    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.RdYlBu, s=20)
-    plt.title("2D Spiral Dataset")
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.colorbar(label='Class')
+    pl.figure(figsize=(6, 6))
+    pl.scatter(X[:, 0], X[:, 1], c=y, cmap=pl.cm.RdYlBu, s=20)
+    pl.title("2D Spiral Dataset")
+    pl.xlabel("X")
+    pl.ylabel("Y")
+    pl.colorbar(label='Class')
 
     # Save the plot to a file
     plot_filename = "plots/2d_spiral.png"
-    plt.savefig(plot_filename)
+    pl.savefig(plot_filename)
     
     # Close the figure to free up memory
-    plt.close()
+    pl.close()
 
     print(f"Plot saved as {plot_filename}")
 
 # Plotting the 3D spiral dataset
 def plot_3d_spiral(X, y):
     """Visualize the 3D spiral dataset."""
-    fig = plt.figure(figsize=(8, 8))
+    fig = pl.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap=plt.cm.RdYlBu, s=20)
+    scatter = ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap=pl.cm.RdYlBu, s=20)
     ax.set_title("3D Spiral Dataset")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
@@ -144,10 +144,10 @@ def plot_3d_spiral(X, y):
 
     # Save the plot to a file
     plot_filename = "plots/3d_spiral.png"
-    plt.savefig(plot_filename)
+    pl.savefig(plot_filename)
     
     # Close the figure to free up memory
-    plt.close()
+    pl.close()
 
     print(f"Plot saved as {plot_filename}")
 
