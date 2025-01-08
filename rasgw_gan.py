@@ -152,7 +152,7 @@ for epoch in range(500):        #it was 3000
         with torch.no_grad():
             # Generate new data using random noise Z
             Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
-            Xs_new = target_model.forward(Z).clone().detach().cpu().numpy()  # Generate data from noise
+            Xs_new = target_model.forward_partial(Z).clone().detach().cpu().numpy()  # Generate data from noise
         
             # Visualize generated data vs actual target data
             fig = pl.figure(figsize=(8, 8))
