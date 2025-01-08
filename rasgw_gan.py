@@ -241,13 +241,13 @@ for epoch in range(500):        #it was 3000
     
     #Xt = target_model.forward_partial(X2D_torch)
     Xs = X2D_torch
-    #loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
+    loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     #Delta = log['Delta']
     #loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
-    loss = sgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50)
-    print("SGW, Epoch,loss:",epoch,loss.item())
+    #loss = sgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50)
+    print("SGW, Epoch,loss:",epoch,loss_.item())
     
-    losses_sgw.append(loss.item())
+    losses_sgw.append(loss_.item())
     loss.backward()
     optimizer.step()
     optimizer.zero_grad()
