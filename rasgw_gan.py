@@ -39,7 +39,7 @@ def create3D_ds(n_samples):
     X[y == 1, 2] = X[y == 1, 2] + 2
     return X, y
 
-def ds_to_torch(X, y):
+def ds_to_torch(X, y,device):
     return torch.FloatTensor(X).to(device), torch.LongTensor(y).to(device)
 
 N = 150
@@ -48,8 +48,8 @@ K = 2  # number of classes
 X2D, y2D = create2D_ds(n_samples=N)
 X3D, y3D = create3D_ds(N)
 
-X2D_torch, y2D_torch = ds_to_torch(X2D, y2D)
-X3D_torch, y3D_torch = ds_to_torch(X3D, y3D)
+X2D_torch, y2D_torch = ds_to_torch(X2D, y2D,device)
+X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
 
 X2D_torch=X2D_torch.to(device)
 X3D_torch=X3D_torch.to(device)
