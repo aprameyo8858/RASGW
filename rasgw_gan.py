@@ -234,12 +234,12 @@ def generate_random_noise(batch_size, noise_dim=2):
 # Training for SGW
 for epoch in range(500):        #it was 3000
     # Generate random noise Z (sampled from a Gaussian distribution)
-    #Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
+    Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
     
     # Pass the random noise Z through the target model (generator)
-    #Xt = target_model.forward_partial(Z)  # Xt is the generated data from the random noise
+    Xt = target_model.forward_partial(Z)  # Xt is the generated data from the random noise
     
-    Xt = target_model.forward_partial(X2D_torch)
+    #Xt = target_model.forward_partial(X2D_torch)
     Xs = X3D_torch
     loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
@@ -259,8 +259,8 @@ for epoch in range(500):        #it was 3000
         with torch.no_grad():
             # Generate new data using random noise Z
             #Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
-            #Xs_new = target_model.forward_partial(Z).clone().detach().cpu().numpy()  # Generate data from noise
-            Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()  # Generate data from noise
+            Xs_new = target_model.forward_partial(Z).clone().detach().cpu().numpy()  # Generate data from noise
+            #Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()  # Generate data from noise
         
             # Visualize generated data vs actual target data
             fig = pl.figure(figsize=(8, 8))
