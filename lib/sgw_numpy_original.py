@@ -13,7 +13,7 @@ class BadShapeError(Exception):
     pass 
 
 
-def sgw_cpu(xs,xt,nproj=200,tolog=False,P=None):
+def sgw_cpu_original(xs,xt,nproj=200,tolog=False,P=None):
     """ Returns SGW between xs and xt eq (4) in [1]. Only implemented with the 0 padding Delta.
     Parameters
     ----------
