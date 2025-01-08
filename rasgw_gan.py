@@ -176,8 +176,8 @@ plot_3d_spiral(X3D, y3D)
 class Target_model(nn.Module):
     def __init__(self):
         super(Target_model, self).__init__()
-        #self.fc1 = nn.Linear(2, 256)   #originally it was this
-        self.fc1 = nn.Linear(3, 256)
+        self.fc1 = nn.Linear(2, 256)   #originally it was this
+        #self.fc1 = nn.Linear(3, 256)
         self.fc2 = nn.Linear(256, 128)
         self.fc3 = nn.Linear(128, 1)
         self.fc4 = nn.Linear(3, K)
@@ -234,13 +234,13 @@ def generate_random_noise(batch_size, noise_dim=2):
 # Training for SGW
 for epoch in range(500):        #it was 3000
     # Generate random noise Z (sampled from a Gaussian distribution)
-    Z = generate_random_noise(X3D_torch.size(0), noise_dim=3)  # Adjust noise_dim if needed
+    Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
     
     # Pass the random noise Z through the target model (generator)
     Xt = target_model.forward_partial(Z)  # Xt is the generated data from the random noise
     
     #Xt = target_model.forward_partial(X2D_torch)
-    Xs = X2D_torch
+    Xs = X3D_torch
     loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
     loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
@@ -258,19 +258,19 @@ for epoch in range(500):        #it was 3000
     if epoch % 100 == 0:
         with torch.no_grad():
             # Generate new data using random noise Z
-            Z = generate_random_noise(X3D_torch.size(0), noise_dim=3)  # Generating noise for the batch
+            Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
             Xs_new = target_model.forward_partial(Z).clone().detach().cpu().numpy()  # Generate data from noise
         
             # Visualize generated data vs actual target data
             fig = pl.figure(figsize=(8, 8))
             ax = fig.add_subplot(111, projection='3d')
             # 1. Plot the target data in 2D (X2D) as a scatter plot in 3D space with a fixed Z-axis for visibility
-            ax.scatter(np.array(X2D)[:, 0], np.array(X2D)[:, 1], np.zeros(len(X2D)), c=[colors[y2D[i]] for i in range(len(y2D))], label="Target Data (2D)")
+            #ax.scatter(np.array(X2D)[:, 0], np.array(X2D)[:, 1], np.zeros(len(X2D)), c=[colors[y2D[i]] for i in range(len(y2D))], label="Target Data (2D)")
 
             # 2. Plot the generated data (Xs_new) in 3D
-            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k', label="Generated Data (3D)")
-            #ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])  # Actual target data
-            #ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')  # Generated data
+            #ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k', label="Generated Data (3D)")
+            ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])  # Actual target data
+            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')  # Generated data
         
             plot_filename = f"plots/sgw/epoch_{epoch}_3dscatter_spiral.png"
             pl.savefig(plot_filename)
