@@ -122,7 +122,7 @@ losses_sgw = []    # Losses for SGW
 
 # Training for RASGW
 for epoch in range(3000):
-    Xt = target_model.forward_partial(X2D_torch).to('cuda')
+    Xt = target_model.forward_partial(X2D_torch.to('cuda'))
     Xs = X3D_torch
     loss_, log = risgw_gpu(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
     Delta = log['Delta']
