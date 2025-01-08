@@ -51,6 +51,9 @@ X3D, y3D = create3D_ds(N)
 X2D_torch, y2D_torch = ds_to_torch(X2D, y2D)
 X3D_torch, y3D_torch = ds_to_torch(X3D, y3D)
 
+X2D_torch=X2D_torch.to(device)
+X3D_torch=X3D_torch.to(device)
+
 # 3D plotting
 fig = pl.figure()
 ax = fig.add_subplot(111, projection='3d')
