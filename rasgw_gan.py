@@ -191,10 +191,10 @@ class Target_model(nn.Module):
         x = F.relu(x)
         x = self.fc3(x)
         x = torch.cat((x_init,x),dim=1)
-        #x = F.relu(x)
+        x = F.relu(x)        # was commented out originally
         return x.to('cuda')
     def forward_remaining(self,x):
-        #x = F.relu(self.fc1(x))
+        #x = F.relu(self.fc1(x))            #was commented out originally
         x = self.fc4(x)
         return F.log_softmax(x, dim=1)
       
