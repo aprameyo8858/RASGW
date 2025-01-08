@@ -6,7 +6,7 @@ from risgw_original import risgw_gpu_original
 import matplotlib.pyplot as pl
 from risgw import risgw_gpu
 from sgw_pytorch import sgw_gpu
-from sgw_pytorch import sgw_gpu_original
+from sgw_pytorch_original import sgw_gpu_original
 import numpy as np
 import torch
 import torch.nn.functional as F
