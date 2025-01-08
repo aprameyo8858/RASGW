@@ -5,15 +5,17 @@ Created on Tue Apr 23 10:04:34 2019
 
 @author: vayer
 """
-
+import torch
 import numpy as np
 import time 
+from power_spherical import PowerSpherical
+from random import choices
 
 class BadShapeError(Exception):
     pass 
 
 
-def sgw_cpu(xs,xt,nproj=200,tolog=False,P=None):
+def sgw_cpu(xs,xt,nproj=500,tolog=False,P=None):
     """ Returns SGW between xs and xt eq (4) in [1]. Only implemented with the 0 padding Delta.
     Parameters
     ----------
@@ -187,7 +189,7 @@ def gromov_1d(xs,xt,tolog=False,fast=True):
         return toreturn
         
 
-def sink_(xs,xt,nproj=200,P=None):
+def sink_(xs,xt,nproj=None,P=None,kappa=50):
     """ Sinks the points of the measure in the lowest dimension onto the highest dimension and applies the projections.
     Only implemented with the 0 padding Delta=Delta_pad operator (see [1])
     Parameters
@@ -228,7 +230,24 @@ def sink_(xs,xt,nproj=200,P=None):
         xs2=xs
         
     if P is None:
-        P=np.random.randn(random_projection_dim,nproj)
+        z_xx = (xs2[np.random.choice(xs2.shape[0], nproj, replace=True)] - xs2[np.random.choice(xs2.shape[0], nproj, replace=True)])
+        z_xx_bar = z_xx / np.sqrt(np.sum(z_xx ** 2, axis=1, keepdims=True))
+        z_yy = (xt2[np.random.choice(xt2.shape[0], nproj, replace=True)] - xt2[np.random.choice(xt2.shape[0], nproj, replace=True)])
+        z_yy_bar = z_yy / np.sqrt(np.sum(z_yy ** 2, axis=1, keepdims=True))
+        z_xx_yy=(z_xx_bar+z_yy_bar)/np.sqrt(np.sum((z_xx_bar+z_yy_bar) ** 2, axis=1, keepdims=True))
+        z_xx_yy_dash=(z_xx_bar-z_yy_bar)/np.sqrt(np.sum((z_xx_bar-z_yy_bar) ** 2, axis=1, keepdims=True))
+        theta=0.5*(z_xx_yy+z_xx_yy_dash)
+        theta_tensor = torch.from_numpy(theta)
+        theta = theta_tensor.to('cpu')
+        theta = torch.nan_to_num(theta, nan=0.0)
+        ps = PowerSpherical(
+            loc=theta,
+            scale=torch.full((theta.shape[0],), kappa, device='cpu'),
+        )
+        theta = ps.rsample()
+        theta=theta.numpy()
+        P=theta.T    #trying with T to match dimensions
+        #P=np.random.randn(random_projection_dim,nproj)
     p=P/np.sqrt(np.sum(P**2,axis=0,keepdims=True))
 
         

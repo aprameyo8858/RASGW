@@ -200,7 +200,7 @@ def gromov_1d(xs,xt,tolog=False):
     else:
         return toreturn
             
-def sink_(xs,xt,device,nproj=200,P=None,kappa=50): #Delta operator (here just padding)
+def sink_(xs,xt,device,nproj=None,P=None,kappa=50): #Delta operator (here just padding)
     """ Sinks the points of the measure in the lowest dimension onto the highest dimension and applies the projections.
     Only implemented with the 0 padding Delta=Delta_pad operator (see [1])
     Parameters
@@ -246,6 +246,14 @@ def sink_(xs,xt,device,nproj=200,P=None,kappa=50): #Delta operator (here just pa
         z_xx_yy=(z_xx_bar+z_yy_bar)/torch.sqrt(torch.sum((z_xx_bar+z_yy_bar) ** 2, dim=1, keepdim=True))
         z_xx_yy_dash=(z_xx_bar-z_yy_bar)/torch.sqrt(torch.sum((z_xx_bar-z_yy_bar) ** 2, dim=1, keepdim=True))
         theta=0.5*(z_xx_yy+z_xx_yy_dash)
+        theta = torch.nan_to_num(theta, nan=0.0)
+        # Check if there are NaN values
+        if torch.isnan(theta).any():
+            print("NaN values detected in loc.")
+
+        # Check if there are Inf values
+        if torch.isinf(theta).any():
+            print("Inf values detected in loc.")
         ps = PowerSpherical(
             loc=theta,
             scale=torch.full((theta.shape[0],), kappa, device=device),
