@@ -245,7 +245,8 @@ for epoch in range(500):        #it was 3000
     #Delta = log['Delta']
     #loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
     #loss = sgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50)
-    print("SGW, Epoch,loss:",epoch,loss_.item())
+    #print("SGW, Epoch,loss:",epoch,loss_.item())
+    print("SGW, Epoch,loss:",epoch,loss_)
     
     losses_sgw.append(loss_)
     #losses_sgw.append(loss.item())
