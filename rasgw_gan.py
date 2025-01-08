@@ -55,22 +55,22 @@ def ds_to_torch(X, y,device):
 #X3D_torch=X3D_torch.to('cuda')
 
 # 3D plotting
-fig = pl.figure()
-ax = fig.add_subplot(111, projection='3d')
-colors = {0: 'r', 1: 'b', 2: 'k', 3: 'g'}
-ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])
+#fig = pl.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#colors = {0: 'r', 1: 'b', 2: 'k', 3: 'g'}
+#ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])
 
 # 2D plotting (use a separate z-value for visibility in 3D)
-ax.scatter(np.array(X2D)[:, 0], np.array(X2D)[:, 1], -10, c=[colors[y2D[i]] for i in range(len(y2D))])
+#ax.scatter(np.array(X2D)[:, 0], np.array(X2D)[:, 1], -10, c=[colors[y2D[i]] for i in range(len(y2D))])
 
 # Save the plot to a file (for example, "3d_plot.png")
-plot_filename = "plots/3d_plot.png"  # Specify the file path
-pl.savefig(plot_filename)
+#plot_filename = "plots/3d_plot.png"  # Specify the file path
+#pl.savefig(plot_filename)
 
 # Close the figure to free up memory (important if generating many plots)
-pl.close()
+#pl.close()
 
-print(f"Plot saved as {plot_filename}")
+#print(f"Plot saved as {plot_filename}")
 
 # Generate a 2D spiral dataset
 def create2D_ds_spiral(n_samples):
