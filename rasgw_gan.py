@@ -120,6 +120,8 @@ optimizer = optim.SGD(target_model.parameters(), lr=5e-3, momentum=0.9)
 losses_rasgw = []  # Losses for RASGW
 losses_sgw = []    # Losses for SGW
 
+# Ensure the model is on the correct device (GPU)
+target_model = Target_model().to('cuda')  
 # Training for RASGW
 for epoch in range(3000):
     Xt = target_model.forward_partial(X2D_torch.to('cuda'))
