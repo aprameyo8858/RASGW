@@ -247,7 +247,8 @@ for epoch in range(500):        #it was 3000
     #loss = sgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50)
     print("SGW, Epoch,loss:",epoch,loss_.item())
     
-    losses_sgw.append(loss_.item())
+    losses_sgw.append(loss_)
+    #losses_sgw.append(loss.item())
     loss.backward()
     optimizer.step()
     optimizer.zero_grad()
