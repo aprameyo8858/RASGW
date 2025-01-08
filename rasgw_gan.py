@@ -18,7 +18,8 @@ import pylab as pl
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn import datasets
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device='cuda'
 
 class StopError(Exception):
     pass
