@@ -165,6 +165,7 @@ X3D_torch, y3D_torch = ds_to_torch(X3D, y3D,device)
 X2D_torch=X2D_torch.to('cuda')
 X3D_torch=X3D_torch.to('cuda')
 # Plot and save the 2D Spiral Dataset
+colors = {0: 'r', 1: 'b', 2: 'k', 3: 'g'}
 plot_2d_spiral(X2D, y2D)
 
 # Plot and save the 3D Spiral Dataset
