@@ -271,7 +271,8 @@ for epoch in range(3000):        #it was 3000
             # 2. Plot the generated data (Xs_new) in 3D
             #ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k', label="Generated Data (3D)")
             #ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])  # Actual target data
-            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')  # Generated data
+            #ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')  # Generated data
+            ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])  # Generated data
         
             plot_filename = f"plots/sgw/epoch_{epoch}_3dscatter_spiral.png"
             pl.savefig(plot_filename)
