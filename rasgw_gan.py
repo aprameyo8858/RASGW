@@ -155,7 +155,7 @@ def plot_3d_spiral(X, y):
 # Example usage
 N = 1500
 N_sup = 500  # number of supervised points
-K = 2  # number of classes
+K = 1  # number of classes it was 2 initially
 #N = 150  # Number of samples
 X2D, y2D = create2D_ds_spiral(n_samples=N)
 X3D, y3D = create3D_ds_spiral(N)
