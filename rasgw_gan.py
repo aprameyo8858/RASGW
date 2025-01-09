@@ -232,7 +232,7 @@ def generate_random_noise(batch_size, noise_dim=2):
     return Z
 
 # Training for SGW
-for epoch in range(3000):        #it was 3000
+for epoch in range(501):        #it was 3000
     # Generate random noise Z (sampled from a Gaussian distribution)
     Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
     
