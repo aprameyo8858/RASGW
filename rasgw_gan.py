@@ -73,25 +73,23 @@ def ds_to_torch(X, y,device):
 
 #print(f"Plot saved as {plot_filename}")
 
-# Generate a 2D spiral dataset
 def create2D_ds_spiral(n_samples):
-    """Create a 2D spiral dataset."""
+    """Create a 2D spiral dataset with only one class."""
     theta = np.linspace(0, 4 * np.pi, n_samples)  # Spiral angle
     r = np.linspace(0, 1, n_samples)  # Radius
     x = r * np.sin(theta)  # x-coordinate
     y = r * np.cos(theta)  # y-coordinate
     
-    # Labels: Use theta to split into two classes
-    y_labels = (theta > 2 * np.pi).astype(int)  # Class 1 for θ > π and Class 0 for θ < π
+    # Create a single class (all points belong to class 0)
+    y_labels = np.zeros(n_samples, dtype=int)  # All points are class 0
     
     X = np.column_stack((x, y))
     X = (X - np.min(X)) / (np.max(X) - np.min(X))  # Normalize the dataset
     
     return X, y_labels
 
-# Generate a 3D spiral dataset
 def create3D_ds_spiral(n_samples):
-    """Create a 3D spiral dataset."""
+    """Create a 3D spiral dataset with only one class."""
     theta = np.linspace(0, 4 * np.pi, n_samples)  # Spiral angle
     r = np.linspace(0, 1, n_samples)  # Radius
     z = np.linspace(0, 1, n_samples)  # Z coordinate
@@ -104,13 +102,14 @@ def create3D_ds_spiral(n_samples):
     
     X = np.column_stack((x, y, z)) + noise  # 3D spiral with noise
     
-    # Labels: Use theta to split into two classes
-    y_labels = (theta > 2 * np.pi).astype(int)  # Class 1 for θ > π and Class 0 for θ < π
+    # Create a single class (all points belong to class 0)
+    y_labels = np.zeros(n_samples, dtype=int)  # All points are class 0
     
     # Normalize the dataset
     X = (X - np.min(X)) / (np.max(X) - np.min(X))
     
     return X, y_labels
+
 
 # Plotting the 2D spiral dataset
 def plot_2d_spiral(X, y):
