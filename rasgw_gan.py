@@ -232,7 +232,7 @@ def generate_random_noise(batch_size, noise_dim=2):
     return Z
 
 # Training for SGW
-for epoch in range(500):        #it was 3000
+for epoch in range(3000):        #it was 3000
     # Generate random noise Z (sampled from a Gaussian distribution)
     Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Adjust noise_dim if needed
     
@@ -241,12 +241,12 @@ for epoch in range(500):        #it was 3000
     
     #Xt = target_model.forward_partial(X2D_torch)
     Xs = X3D_torch
-    loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50, max_iter=100, tolog=True, retain_graph=True)
+    loss_, log = risgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=500, max_iter=100, tolog=True, retain_graph=True)      #nproj=50 originally      
     Delta = log['Delta']
-    loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=50)
+    loss = sgw_gpu_original(Xs.matmul(Delta.detach()).to(device), Xt.to(device), device, nproj=500)                #nproj=50 originally
     #loss = sgw_gpu_original(Xs.to(device), Xt.to(device), device, nproj=50)
     #print("SGW, Epoch,loss:",epoch,loss_.item())
-    print("SGW, Epoch,loss:",epoch,loss_)
+    print("SGW, Epoch,loss:",epoch,loss)
     #loss=loss_
     #losses_sgw.append(loss_)
     #loss_=torch.tensor(loss_)
@@ -258,7 +258,7 @@ for epoch in range(500):        #it was 3000
     if epoch % 100 == 0:
         with torch.no_grad():
             # Generate new data using random noise Z
-            #Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
+            Z = generate_random_noise(X2D_torch.size(0), noise_dim=2)  # Generating noise for the batch
             Xs_new = target_model.forward_partial(Z).clone().detach().cpu().numpy()  # Generate data from noise
             #Xs_new = target_model.forward_partial(X2D_torch).clone().detach().cpu().numpy()  # Generate data from noise
         
@@ -270,7 +270,7 @@ for epoch in range(500):        #it was 3000
 
             # 2. Plot the generated data (Xs_new) in 3D
             #ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k', label="Generated Data (3D)")
-            ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])  # Actual target data
+            #ax.scatter(np.array(X3D)[:, 0], np.array(X3D)[:, 1], np.array(X3D)[:, 2], c=[colors[y3D[i]] for i in range(len(y3D))])  # Actual target data
             ax.scatter(Xs_new[:, 0], Xs_new[:, 1], Xs_new[:, 2], c='k')  # Generated data
         
             plot_filename = f"plots/sgw/epoch_{epoch}_3dscatter_spiral.png"
