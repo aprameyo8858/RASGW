@@ -1,110 +1,98 @@
 import torch
-import time
+import torch.optim as optim
 import numpy as np
+import time
 
-# Define a custom exception for bad shapes.
-class BadShapeError(Exception):
-    pass 
+# The cost function for the Gromov-Wasserstein distance
+def _cost(xsp, xtp, tolog=False):
+    """ Returns the GM cost eq (3) in [1] for the Gromov-Wasserstein distance."""
+    st = time.time()
 
-# PowerSpherical class, used in RPSW (as in your original code)
-class PowerSpherical(torch.nn.Module):
-    def __init__(self, loc, scale):
-        super(PowerSpherical, self).__init__()
-        self.loc = loc
-        self.scale = scale
-    
-    def rsample(self):
-        # Implementation of sampling from the Power Spherical distribution
-        # Assuming a simple spherical sampling
-        v = torch.randn_like(self.loc)
-        v = v / torch.norm(v, dim=1, keepdim=True)  # Normalize to unit sphere
-        return self.scale[:, None] * v + self.loc  # Scale and shift
+    xs = xsp
+    xt = xtp
 
-# Sliced Gromov-Wasserstein with Randomized Projections (RPSGW)
-def RPSGW(xs, xt, device, nproj=200, p=2, kappa=50, tolog=False, P=None):
-    """ Returns RPSGW (Randomized Projection Sliced Gromov-Wasserstein) distance.
-    
-    Parameters
-    ----------
-    xs : tensor, shape (n, p)
-        Source samples
-    xt : tensor, shape (n, q)
-        Target samples
-    device : torch.device
-        Torch device (cpu or cuda)
-    nproj : int
-        Number of projections (ignored if P is not None)
-    p : float
-        Power parameter for Wasserstein distance
-    kappa : float
-        Concentration parameter for the spherical distribution
-    P : tensor, shape (max(p,q), n_proj), optional
-        Predefined projection matrix. If None, generates random projections.
-    tolog : bool, optional
-        Whether to return detailed logs (default False)
-    
-    Returns
-    -------
-    RPSGW distance : tensor
-        The computed RPSGW distance.
-    """
-    
-    # Step 1: Perform random projection to lower-dimensional space
-    xsp, xtp, _ = sink_(xs, xt, device, nproj=nproj, P=P)
-    
-    # Step 2: Create theta using the random projections
-    L = xsp.shape[0]  # Number of samples (n)
-    theta = (xsp - xtp)  # The difference between source and target in projected space
-    theta = theta / torch.sqrt(torch.sum(theta ** 2, dim=1, keepdim=True))  # Normalize
-    
-    # Step 3: Sample theta from the Power Spherical distribution
-    ps = PowerSpherical(loc=theta, scale=torch.full((theta.shape[0],), kappa, device=device))
-    theta_sampled = ps.rsample()  # Sample from the distribution
-    
-    # Step 4: Compute the Wasserstein distance using theta (this part remains the same as the original SGW)
-    sw = one_dimensional_Wasserstein_prod(xsp, xtp, theta_sampled, p=p).mean()
-    
-    # Step 5: Return the RPSGW distance (Wasserstein raised to power 1/p)
-    return torch.pow(sw, 1. / p)
+    xs2 = xs * xs
+    xs3 = xs2 * xs
+    xs4 = xs2 * xs2
 
-# Wasserstein distance function (adapted for 1D)
-def one_dimensional_Wasserstein_prod(xs, xt, theta, p=2):
-    """ Computes the 1D Wasserstein distance with the given theta.
-    """
-    # Computing pairwise distances using theta (assumes theta is the direction of the geodesic)
-    dist = torch.sum((xs - xt)**2, dim=1)
-    dist = torch.pow(dist, p / 2)  # Raise to power p
-    
-    # Return the mean Wasserstein distance
-    return dist.mean()
+    xt2 = xt * xt
+    xt3 = xt2 * xt
+    xt4 = xt2 * xt2
 
-# Sinkhorn operator (as in SGW code) for padding and projecting
+    X = torch.sum(xs, 0)
+    X2 = torch.sum(xs2, 0)
+    X3 = torch.sum(xs3, 0)
+    X4 = torch.sum(xs4, 0)
+
+    Y = torch.sum(xt, 0)
+    Y2 = torch.sum(xt2, 0)
+    Y3 = torch.sum(xt3, 0)
+    Y4 = torch.sum(xt4, 0)
+
+    xxyy_ = torch.sum((xs2) * (xt2), 0)
+    xxy_ = torch.sum((xs2) * (xt), 0)
+    xyy_ = torch.sum((xs) * (xt2), 0)
+    xy_ = torch.sum((xs) * (xt), 0)
+
+    n = xs.shape[0]
+
+    C2 = 2 * X2 * Y2 + 2 * (n * xxyy_ - 2 * Y * xxy_ - 2 * X * xyy_ + 2 * xy_ * xy_)
+
+    power4_x = 2 * n * X4 - 8 * X3 * X + 6 * X2 * X2
+    power4_y = 2 * n * Y4 - 8 * Y3 * Y + 6 * Y2 * Y2
+
+    C = (1 / (n ** 2)) * (power4_x + power4_y - 2 * C2)
+
+    ed = time.time()
+
+    if not tolog:
+        return C
+    else:
+        return C, ed - st
+
+
+# Gromov-1D function that computes the 1D Gromov Wasserstein distance between sorted projections
+def gromov_1d(xs, xt, tolog=False):
+    """ Solves the Gromov in 1D (eq (2) in [1] for each proj."""
+    
+    if tolog:
+        log = {}
+
+    st = time.time()
+    xs2, i_s = torch.sort(xs, dim=0)
+
+    if tolog:
+        xt_asc, i_t = torch.sort(xt, dim=0)  # Sort in ascending order
+        xt_desc, i_t = torch.sort(xt, dim=0, descending=True)  # Sort in descending order
+        l1, t1 = _cost(xs2, xt_asc, tolog=tolog)
+        l2, t2 = _cost(xs2, xt_desc, tolog=tolog)
+    else:
+        xt_asc, i_t = torch.sort(xt, dim=0)
+        xt_desc, i_t = torch.sort(xt, dim=0, descending=True)
+        l1 = _cost(xs2, xt_asc, tolog=tolog)
+        l2 = _cost(xs2, xt_desc, tolog=tolog)
+
+    toreturn = torch.mean(torch.min(l1, l2))
+    ed = time.time()
+
+    if tolog:
+        log['g1d'] = ed - st
+        log['t1'] = t1
+        log['t2'] = t2
+
+    if tolog:
+        return toreturn, log
+    else:
+        return toreturn
+
+
+# Function that performs the projection using the "sink_" operation (projection of the samples)
 def sink_(xs, xt, device, nproj=200, P=None):
-    """Sinks the points in the lowest dimension onto the highest dimension and applies projections.
-    
-    Parameters
-    ----------
-    xs : tensor, shape (n, p)
-        Source samples
-    xt : tensor, shape (n, q)
-        Target samples
-    device : torch device
-        Torch device (cpu or cuda)
-    nproj : int
-        Number of projections
-    P : tensor, shape (max(p,q), n_proj), optional
-        Predefined projection matrix
-    
-    Returns
-    -------
-    xsp : tensor, shape (n, n_proj)
-        Projected source samples
-    xtp : tensor, shape (n, n_proj)
-        Projected target samples
-    """
+    """ Sinks the points of the measure in the lowest dimension onto the highest dimension and applies the projections."""
     dim_d = xs.shape[1]
     dim_p = xt.shape[1]
-    
+
+    # Padding to make dimensions equal
     if dim_d < dim_p:
         random_projection_dim = dim_p
         xs2 = torch.cat((xs, torch.zeros((xs.shape[0], dim_p - dim_d)).to(device)), dim=1)
@@ -113,40 +101,77 @@ def sink_(xs, xt, device, nproj=200, P=None):
         random_projection_dim = dim_d
         xt2 = torch.cat((xt, torch.zeros((xt.shape[0], dim_d - dim_p)).to(device)), dim=1)
         xs2 = xs
-    
+
+    # If P is None, generate a new random projection matrix
     if P is None:
         P = torch.randn(random_projection_dim, nproj)
-    p = P / torch.sqrt(torch.sum(P**2, 0, True))  # Normalize the projection matrix
-    
+    p = P / torch.sqrt(torch.sum(P ** 2, 0, True))
+
     try:
         xsp = torch.matmul(xs2, p.to(device))
         xtp = torch.matmul(xt2, p.to(device))
     except RuntimeError as error:
         print('----------------------------------------')
-        print('xs origi dim :', xs.shape)
-        print('xt origi dim :', xt.shape)
-        print('random_projection_dim :', random_projection_dim)
-        print('projector dimension :', p.shape)
-        print('xs2 dim :', xs2.shape)
-        print('xt2 dim :', xt2.shape)
+        print('xs original dim:', xs.shape)
+        print('xt original dim:', xt.shape)
+        print('dim_p:', dim_p)
+        print('dim_d:', dim_d)
+        print('random_projection_dim:', random_projection_dim)
+        print('projection matrix dim:', p.shape)
+        print('xs2 dim:', xs2.shape)
+        print('xt2 dim:', xt2.shape)
         print('----------------------------------------')
         print(error)
         raise BadShapeError
-    
-    return xsp, xtp, None
 
-# Example usage:
-if __name__ == "__main__":
-    # Example source and target distributions
-    n_samples = 300
-    Xs = np.random.rand(n_samples, 2)
-    Xt = np.random.rand(n_samples, 1)
-    xs = torch.from_numpy(Xs).to(torch.float32)
-    xt = torch.from_numpy(Xt).to(torch.float32)
+    return xsp, xtp
+
+
+# PowerSpherical class
+class PowerSpherical:
+    """Class for a PowerSpherical distribution."""
+    def __init__(self, loc, scale):
+        self.loc = loc
+        self.scale = scale
     
-    # Device setup
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    def rsample(self):
+        # Sampling from the PowerSpherical distribution
+        normed = self.loc / torch.sqrt(torch.sum(self.loc ** 2, dim=1, keepdim=True))
+        return normed * self.scale.unsqueeze(1)
+
+
+# RPSGW function for Random Projections Sliced Gromov-Wasserstein
+def RPSGW(X, Y, L=10, p=2, device='cuda', kappa=50, nproj=200):
+    """Computes the Random Projections Sliced Gromov-Wasserstein distance."""
+    dim = X.size(1)
     
-    # Compute RPSGW distance
-    rpsgw_distance = RPSGW(xs, xt, device, nproj=200, p=2, kappa=50)
-    print("RPSGW Distance:", rpsgw_distance.item())
+    # Compute the random projections (initialization of theta)
+    theta = (X.detach()[np.random.choice(X.shape[0], L, replace=True)] - Y.detach()[np.random.choice(Y.shape[0], L, replace=True)])
+    theta = theta / torch.sqrt(torch.sum(theta ** 2, dim=1, keepdim=True))  # Normalize
+    
+    # PowerSpherical distribution for projections
+    ps = PowerSpherical(loc=theta, scale=torch.full((theta.shape[0],), kappa, device=device))
+    
+    # Sample projections from the distribution
+    theta = ps.rsample()
+    
+    # Project both the source and target data using sink_
+    xsp, xtp = sink_(X, Y, device, nproj=nproj)
+    
+    # Compute the Gromov-Wasserstein distance between the projections
+    sw = gromov_1d(xsp, xtp, tolog=False).mean()
+
+    return torch.pow(sw, 1. / p)
+
+
+# Helper function to create random projections
+def rand_projections(dim, L, device):
+    """ Generates random projections of a given dimension and number of projections """
+    projections = torch.randn(L, dim, device=device)
+    projections = projections / torch.sqrt(torch.sum(projections ** 2, dim=1, keepdim=True))  # Normalize
+    return projections
+
+
+# BadShapeError for exception handling during projection
+class BadShapeError(Exception):
+    pass
