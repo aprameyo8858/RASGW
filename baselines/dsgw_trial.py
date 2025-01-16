@@ -1,6 +1,6 @@
 import torch
 import torch.optim as optim
-import time
+from power_spherical import PowerSpherical  # Import PowerSpherical
 
 # The cost function as defined in the Gromov 1D code you provided
 def _cost(xsp, xtp, tolog=False):
@@ -85,18 +85,6 @@ def gromov_1d(xs, xt, tolog=False):
         return toreturn
 
 
-# PowerSpherical class (for Dynamic Projection Sampling)
-class PowerSpherical:
-    def __init__(self, epsilon, kappa):
-        self.epsilon = epsilon
-        self.kappa = kappa
-
-    def rsample(self, shape):
-        # Simulate the resampling of the spherical distribution (as per your original DSW code)
-        norm_eps = self.epsilon / torch.norm(self.epsilon, dim=1, keepdim=True)
-        return norm_eps
-
-
 # Function that performs the projection using the "sink_" operation (projection of the samples)
 def sink_(xs, xt, device, nproj=200, P=None):
     """ Sinks the points of the measure in the lowest dimension onto the highest dimension and applies the projections."""
@@ -150,15 +138,17 @@ def DSGW(X, Y, L=5, kappa=10, p=2, s_lr=0.1, n_lr=2, device='cuda', nproj=200):
     # Set up the optimizer for the projection vectors
     optimizer = optim.SGD([epsilon], lr=s_lr)
     
-    X_detach = X.detach()
-    Y_detach = Y.detach()
-    
+    # Ensure X and Y also require gradients
+    X_detach = X.detach().requires_grad_(True)  # Detach but keep gradient tracking for backward pass
+    Y_detach = Y.detach().requires_grad_(True)
+
     # Iterate to optimize the projections
     for _ in range(n_lr - 1):
         # Create a PowerSpherical distribution and sample the projections
         vmf = PowerSpherical(epsilon, torch.full((1,), kappa, device=device))
-        theta = vmf.rsample((L,)).view(L, -1)
-        
+        theta = vmf.rsample((L,))  # Correct the shape issue here
+        theta = theta.view(L, -1)  # Reshaping
+
         # Perform the sink operation (projection) on the data
         xsp, xtp = sink_(X_detach, Y_detach, device, nproj=nproj)
         
@@ -166,7 +156,7 @@ def DSGW(X, Y, L=5, kappa=10, p=2, s_lr=0.1, n_lr=2, device='cuda', nproj=200):
         negative_sgw = -torch.pow(gromov_1d(xsp, xtp, tolog=False).mean(), 1. / p)
         
         optimizer.zero_grad()
-        negative_sgw.backward()
+        negative_sgw.backward()  # This should now work since negative_sgw is on the computational graph
         optimizer.step()
         
         # Re-normalize epsilon (projection vectors)
@@ -174,7 +164,8 @@ def DSGW(X, Y, L=5, kappa=10, p=2, s_lr=0.1, n_lr=2, device='cuda', nproj=200):
     
     # Recompute the Gromov-1D cost after optimization
     vmf = PowerSpherical(epsilon, torch.full((1,), kappa, device=device))
-    theta = vmf.rsample((L,)).view(L, -1)
+    theta = vmf.rsample((L,))  # Correct the shape issue here
+    theta = theta.view(L, -1)  # Reshaping
     
     # Perform the sink operation (projection) on the data
     xsp, xtp = sink_(X, Y, device, nproj=nproj)
