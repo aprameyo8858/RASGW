@@ -29,7 +29,7 @@ def spherical_sample(n, dim, scale=1.0, device='cuda'):
     return scale * u  # Apply scale
 
 # The main EB-SGW function
-def ebsgw_gpu(xs, xt, device, nproj=200, tolog=False, P=None, kappa=1, L=10, p=2):
+def ebrpsgw_gpu(xs, xt, device, nproj=200, tolog=False, P=None, kappa=1, L=10, p=2):
     """
     Returns Energy-Based Sliced Gromov-Wasserstein (EB-SGW) distance.
     
